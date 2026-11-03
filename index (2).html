@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кнопка Свободы — Детерминизм и Свобода Воли</title>
+    <style>
+        :root {
+            --bg-color: #0f1117;
+            --card-bg: rgba(26, 32, 44, 0.75);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --primary: #e63946;
+            --primary-hover: #ff4d5a;
+            --primary-glow: rgba(230, 57, 70, 0.45);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-glow: rgba(56, 189, 248, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(230, 57, 70, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(56, 189, 248, 0.08) 0%, transparent 45%);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Фоновый холст для частиц */
+        #fx-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Верхняя панель */
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 24px 20px 12px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 30%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 6px;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+        }
+
+        /* Верхняя панель управления */
+        .top-bar {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        /* Основная рабочая область */
+        main {
+            flex: 1;
+            position: relative;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .interactive-arena {
+            position: relative;
+            width: 100%;
+            max-width: 860px;
+            min-height: 440px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Интерактивная кнопка */
+        #freedom-btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #b91c1c 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 22px 48px;
+            font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.3s ease;
+            box-shadow: 0 10px 30px var(--primary-glow), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            position: relative;
+            z-index: 20;
+            outline: none;
+        }
+
+        #freedom-btn:hover {
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #dc2626 100%);
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 15px 40px var(--primary-glow);
+        }
+
+        #freedom-btn:active {
+            transform: scale(0.96) translateY(2px);
+        }
+
+        /* Кнопки иллюзии выбора */
+        .illusion-cluster {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            position: relative;
+            z-index: 20;
+        }
+
+        .illusion-btn {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 18px 36px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border-radius: 14px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .illusion-btn:hover {
+            transform: scale(1.06);
+            background: #3b82f6;
+        }
+
+        /* Блок сообщений и реакций */
+        .message-box {
+            margin-top: 36px;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            max-width: 650px;
+            padding: 16px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .action-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent);
+            margin-bottom: 8px;
+            font-weight: 600;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        #message {
+            font-size: clamp(1.1rem, 2vw, 1.35rem);
+            line-height: 1.5;
+            color: #f1f5f9;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .quote-author {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        /* Левая панель — УВЕЛИЧЕННЫЙ И СТИЛИЗОВАННЫЙ ТЕКСТ */
+        .footer {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            font-size: 1.05rem; /* Значительно увеличен размер */
+            line-height: 1.6;
+            color: #cbd5e1;
+            text-align: left;
+            max-width: 380px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 18px 22px;
+            border-radius: 16px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            z-index: 50;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .footer:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .footer-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-title span {
+            color: var(--primary);
+        }
+
+        .footer-quote {
+            font-size: 1.05rem;
+            color: #f1f5f9;
+            font-style: italic;
+            margin-bottom: 10px;
+            border-left: 3px solid var(--primary);
+            padding-left: 10px;
+        }
+
+        .footer-note {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Правая панель со счетчиком и статистикой */
+        .counter {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid var(--border-color);
+            padding: 18px 24px;
+            border-radius: 16px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: right;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .counter-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+        }
+
+        .counter-value {
+            font-size: 2.2rem;
+            font-family: 'SF Mono', Consolas, Monaco, monospace;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+            text-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .counter-sub {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        /* Мини-таймер теста воли */
+        .timer-badge {
+            background: #eab308;
+            color: #000;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            margin-top: 8px;
+            display: inline-block;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.97); }
+            100% { transform: scale(1.03); }
+        }
+
+        /* Режим глитча */
+        .glitch-flash {
+            animation: glitchEffect 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        @keyframes glitchEffect {
+            0% { filter: invert(0); }
+            20% { filter: invert(0.9) hue-rotate(90deg); }
+            50% { filter: contrast(2) saturate(2); }
+            80% { filter: invert(0.5); }
+            100% { filter: invert(0); }
+        }
+
+        /* Адаптивность для мобильных экранов */
+        @media (max-width: 820px) {
+            .footer {
+                position: static;
+                max-width: 100%;
+                margin: 20px 16px 10px;
+                font-size: 0.95rem;
+            }
+            .counter {
+                position: static;
+                margin: 0 16px 20px;
+                text-align: center;
+            }
+            body {
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            .interactive-arena {
+                min-height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="fx-canvas"></canvas>
+
+    <div class="top-bar">
+        <button id="sound-btn" class="icon-btn" aria-label="Звуковые эффекты">
+            <span id="sound-icon">🔊</span> <span id="sound-text">Звук: Вкл</span>
+        </button>
+        <button id="reset-btn" class="icon-btn" aria-label="Сброс состояния">
+            🔄 <span>Сброс</span>
+        </button>
+    </div>
+
+    <header>
+        <h1>Сделать свободный выбор</h1>
+        <p class="subtitle">Интерактивный философский эксперимент о предопределенности</p>
+    </header>
+
+    <main>
+        <div class="interactive-arena" id="arena">
+            <div id="button-container">
+                <button id="freedom-btn">Нажми меня</button>
+            </div>
+
+            <div class="message-box" id="message-card">
+                <span class="action-tag" id="action-tag">Начало эксперимента</span>
+                <div id="message">Попробуйте совершить полностью свободный поступок. Что произойдет?</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Левая сторона: Увеличенный, стильный и содержательный блок с цитатой и контекстом -->
+    <div class="footer">
+        <div class="footer-title">
+            <span>✦</span> Философия выбора
+        </div>
+        <div class="footer-quote">
+            «Свобода — это не кнопка. Это понимание того, почему кнопка не работает».
+        </div>
+        <div class="footer-note">
+            Проект по философии: Детерминизм, нейробиология и границы свободы воли.
+        </div>
+    </div>
+
+    <!-- Правая сторона: Счетчик предопределенных решений -->
+    <div class="counter">
+        <div class="counter-label">Принято решений</div>
+        <div class="counter-value" id="count">0</div>
+        <div class="counter-sub" id="counter-sub">Свободных: строго 0</div>
+    </div>
+
+    <script>
+        // Инициализация элементов
+        const btn = document.getElementById('freedom-btn');
+        const buttonContainer = document.getElementById('button-container');
+        const msg = document.getElementById('message');
+        const actionTag = document.getElementById('action-tag');
+        const messageCard = document.getElementById('message-card');
+        const countSpan = document.getElementById('count');
+        const counterSub = document.getElementById('counter-sub');
+        const soundBtn = document.getElementById('sound-btn');
+        const soundIcon = document.getElementById('sound-icon');
+        const soundText = document.getElementById('sound-text');
+        const resetBtn = document.getElementById('reset-btn');
+        const canvas = document.getElementById('fx-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let clicks = 0;
+        let soundEnabled = true;
+        let isWaitingForWillTest = false;
+        let willTestTimeout = null;
+        let audioCtx = null;
+
+        // Настройка холста для визуальных эффектов
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Простая синтезация звуков через Web Audio API (без внешних файлов)
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(320, now);
+                    osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'dodge') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.exponentialRampToValueAtTime(580, now + 0.15);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'glitch') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.setValueAtTime(80, now + 0.05);
+                    osc.frequency.setValueAtTime(240, now + 0.1);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                    osc.start(now);
+                    osc.stop(now + 0.2);
+                } else if (type === 'chime') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                }
+            } catch (e) {
+                // Игнорируем ограничения автовоспроизведения браузера
+            }
+        }
+
+        // Система частиц (конфетти / искры)
+        let particles = [];
+        function createParticles(x, y, color = '#e63946', count = 16) {
+            for (let i = 0; i < count; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    radius: 2 + Math.random() * 3,
+                    color: color,
+                    alpha: 1,
+                    decay: 0.02 + Math.random() * 0.03
+                });
+            }
+        }
+
+        function updateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08; // гравитация
+                p.alpha -= p.decay;
+
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+            requestAnimationFrame(updateParticles);
+        }
+        requestAnimationFrame(updateParticles);
+
+        // Обширная база разнообразных философских и саркастичных реакций
+        const reactions = [
+            {
+                tag: "Бенджамин Либет (1983)",
+                text: "Потенциал готовности в вашей моторной коре зафиксирован за 350 мс до того, как вы осознали желание нажать.",
+                author: "Нейробиология воли"
+            },
+            {
+                tag: "Бенедикт Спиноза",
+                text: "«Люди лишь потому считают себя свободными, что свои действия они сознают, а причин, которыми они определяются, не знают».",
+                author: "Этика (1677)"
+            },
+            {
+                tag: "Артур Шопенгауэр",
+                text: "«Человек может делать то, что он желает, но не может желать того, что он желает».",
+                author: "О свободе воли"
+            },
+            {
+                tag: "Демон Лапласа",
+                text: "Координаты всех атомов во Вселенной в момент Большого взрыва уже содержали неизбежность этого клика.",
+                author: "Физический детерминизм"
+            },
+            {
+                tag: "Иммануил Кант",
+                text: "В мире феноменов каждое ваше действие подчинено строгой причинности. Но надежда на ноуменальную свободу остаётся.",
+                author: "Критика чистого разума"
+            },
+            {
+                tag: "Фридрих Ницше",
+                text: "«Свобода воли — самое грубое из всех искусств теологов, имеющее целью сделать человечество ответственным».",
+                author: "Сумерки идолов"
+            },
+            {
+                tag: "Когнитивная психология",
+                text: "Дофаминовый импульс предвосхищения заставил ваш палец согнуться. Биохимия снова обогнала философию.",
+                author: "Нейромедиаторы"
+            },
+            {
+                tag: "Квантовая физика",
+                text: "Даже если на микроуровне правит квантовая случайность — случайность не делает поступок сознательным выбором.",
+                author: "Принцип неопределенности"
+            },
+            {
+                tag: "Ирония кода",
+                text: "Эта кнопка запрограммирована выполнять заранее написанный скрипт. В точности как ваши синапсы.",
+                author: "Архитектура алгоритмов"
+            },
+            {
+                tag: "Поведенческая экономика",
+                text: "Вы нажали просто потому, что кнопка была красной и находилась прямо перед вами. Иллюзия автономии рассеялась.",
+                author: "Архитектура выбора"
+            }
+        ];
+
+        // Разнообразные типы действий при нажатии
+        function triggerRandomSpecialAction(rect) {
+            const actionType = Math.floor(Math.random() * 6);
+
+            switch (actionType) {
+                case 0:
+                    // 1. Кнопка "убегает" в случайную позицию
+                    dodgeButton();
+                    break;
+                case 1:
+                    // 2. Иллюзия выбора: появление двух кнопок
+                    spawnChoiceIllusion();
+                    break;
+                case 2:
+                    // 3. Тест на свободу воли: предложение НЕ нажимать
+                    startWillpowerTest();
+                    break;
+                case 3:
+                    // 4. Глитч-эффект экрана
+                    triggerGlitch();
+                    break;
+                case 4:
+                    // 5. Временное изменение текста и масштаба кнопки
+                    shrinkAndMorph();
+                    break;
+                case 5:
+                    // 6. Вихревое вращение и смена цвета
+                    spinAndShiftColor();
+                    break;
+            }
+        }
+
+        // Действие 1: Убегание кнопки
+        function dodgeButton() {
+            playSound('dodge');
+            actionTag.textContent = "Рефлекс ускользания";
+            const arena = document.getElementById('arena');
+            const arenaRect = arena.getBoundingClientRect();
+            
+            // Задаем смещение в пределах арены
+            const maxOffsetX = Math.min(180, arenaRect.width / 3);
+            const maxOffsetY = Math.min(100, arenaRect.height / 4);
+            const randomX = (Math.random() - 0.5) * maxOffsetX * 2;
+            const randomY = (Math.random() - 0.5) * maxOffsetY * 2;
+
+            btn.style.transform = `translate(${randomX}px, ${randomY}px) scale(1.08)`;
+            
+            setTimeout(() => {
+                btn.style.transform = 'translate(0, 0) scale(1)';
+            }, 600);
+        }
+
+        // Действие 2: Иллюзия выбора (две разные кнопки, один исход)
+        function spawnChoiceIllusion() {
+            playSound('chime');
+            actionTag.textContent = "Иллюзия альтернатив";
+            
+            buttonContainer.innerHTML = `
+                <div class="illusion-cluster" id="illusion-box">
+                    <button class="illusion-btn" id="choice-a">Выбор А: Разум</button>
+                    <button class="illusion-btn" style="background: linear-gradient(135deg, #059669, #047857);" id="choice-b">Выбор Б: Чувства</button>
+                </div>
+            `;
+
+            function resolveIllusion(chosenName) {
+                clicks++;
+                countSpan.textContent = clicks;
+                playSound('click');
+                actionTag.textContent = "Единый финал";
+                msg.innerHTML = `Вы выбрали <strong>«${chosenName}»</strong>, но причина была предопределена еще до появления вопроса. Выбор — лишь интерпретация свершившегося.`;
+                restoreOriginalButton();
+            }
+
+            document.getElementById('choice-a').addEventListener('click', () => resolveIllusion('Разум'));
+            document.getElementById('choice-b').addEventListener('click', () => resolveIllusion('Чувства'));
+        }
+
+        function restoreOriginalButton() {
+            buttonContainer.innerHTML = `<button id="freedom-btn">Нажми меня</button>`;
+            const newBtn = document.getElementById('freedom-btn');
+            attachButtonListener(newBtn);
+        }
+
+        // Действие 3: Тест на свободу воли
+        function startWillpowerTest() {
+            if (isWaitingForWillTest) return;
+            isWaitingForWillTest = true;
+            actionTag.textContent = "Тест на свободу воли";
+            
+            let secondsLeft = 3;
+            msg.innerHTML = `Докажите свободу воли: <strong>НЕ нажимайте кнопку ${secondsLeft} секунды</strong>!<br><span class="timer-badge" id="test-timer">Осталось: ${secondsLeft} с</span>`;
+
+            const interval = setInterval(() => {
+                secondsLeft--;
+                const timerBadge = document.getElementById('test-timer');
+                if (timerBadge) {
+                    timerBadge.textContent = `Осталось: ${secondsLeft} с`;
+                }
+
+                if (secondsLeft <= 0) {
+                    clearInterval(interval);
+                    isWaitingForWillTest = false;
+                    actionTag.textContent = "Парадокс самообладания";
+                    msg.innerHTML = `Вы удержались от нажатия! Но сделали ли вы это свободно? Или наша инструкция просто стала определяющей причиной вашего бездействия?`;
+                    playSound('chime');
+                }
+            }, 1000);
+
+            willTestTimeout = interval;
+        }
+
+        // Действие 4: Глитч матрицы выбора
+        function triggerGlitch() {
+            playSound('glitch');
+            actionTag.textContent = "Сбой причинности";
+            document.body.classList.add('glitch-flash');
+            setTimeout(() => {
+                document.body.classList.remove('glitch-flash');
+            }, 300);
+        }
+
+        // Действие 5: Сжатие и смена текста
+        function shrinkAndMorph() {
+            const labels = ["Точно выбор?", "Снова детерминизм", "Нейроны опередили", "Судьба кликнула"];
+            const nextLabel = labels[Math.floor(Math.random() * labels.length)];
+            
+            btn.textContent = nextLabel;
+            btn.style.transform = 'scale(0.85) rotate(-5deg)';
+            btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)';
+
+            setTimeout(() => {
+                btn.style.transform = 'scale(1) rotate(0deg)';
+                btn.textContent = "Нажми меня";
+                btn.style.background = 'linear-gradient(135deg, var(--primary) 0%, #b91c1c 100%)';
+            }, 700);
+        }
+
+        // Действие 6: Вращение и импульс
+        function spinAndShiftColor() {
+            playSound('click');
+            actionTag.textContent = "Кинетический импульс";
+            btn.style.transform = 'rotate(360deg) scale(1.1)';
+            setTimeout(() => {
+                btn.style.transform = 'rotate(0deg) scale(1)';
+            }, 400);
+        }
+
+        // Основной обработчик клика по кнопке
+        function handleMainClick(e) {
+            clicks++;
+            countSpan.textContent = clicks;
+
+            if (clicks > 0) {
+                counterSub.textContent = `Предопределено: 100%`;
+            }
+
+            // Создание визуальных искр под курсором
+            const rect = (e && e.target) ? e.target.getBoundingClientRect() : btn.getBoundingClientRect();
+            const posX = e ? e.clientX : (rect.left + rect.width / 2);
+            const posY = e ? e.clientY : (rect.top + rect.height / 2);
+            createParticles(posX, posY, clicks % 2 === 0 ? '#e63946' : '#38bdf8', 18);
+
+            // Если шёл тест воли и пользователь нажал
+            if (isWaitingForWillTest) {
+                clearInterval(willTestTimeout);
+                isWaitingForWillTest = false;
+                playSound('glitch');
+                actionTag.textContent = "Импульс победил";
+                msg.innerHTML = `Вы не выдержали и нажали! Дофаминовый стимул оказался сильнее самоконтроля. Детерминизм: 1, Вы: 0.`;
+                return;
+            }
+
+            playSound('click');
+
+            // Подбираем философское сообщение
+            const reaction = reactions[clicks % reactions.length];
+            actionTag.textContent = reaction.tag;
+            msg.innerHTML = `${reaction.text} <span class="quote-author">— ${reaction.author}</span>`;
+
+            // Тряска карточки сообщения
+            messageCard.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                messageCard.style.transform = 'scale(1)';
+            }, 180);
+
+            // Запускаем разнообразное интерактивное действие
+            triggerRandomSpecialAction(rect);
+        }
+
+        function attachButtonListener(targetBtn) {
+            targetBtn.addEventListener('click', handleMainClick);
+        }
+        attachButtonListener(btn);
+
+        // Управление звуком
+        soundBtn.addEventListener('click', function() {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundIcon.textContent = '🔊';
+                soundText.textContent = 'Звук: Вкл';
+                initAudio();
+                playSound('chime');
+            } else {
+                soundIcon.textContent = '🔇';
+                soundText.textContent = 'Звук: Выкл';
+            }
+        });
+
+        // Сброс счетчика и состояния
+        resetBtn.addEventListener('click', function() {
+            clicks = 0;
+            countSpan.textContent = '0';
+            counterSub.textContent = 'Свободных: строго 0';
+            actionTag.textContent = "Эксперимент сброшен";
+            msg.textContent = "Состояние очищено. Но изменится ли ваше поведение при следующем клике?";
+            playSound('chime');
+            restoreOriginalButton();
+        });
+    </script>
+</body>
+</html>
