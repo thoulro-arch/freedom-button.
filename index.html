@@ -1,0 +1,117 @@
+html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кнопка Свободы</title>
+    <style>
+        body {
+            background-color: #1a1a1a; /* Темный фон */
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            overflow: hidden; /* Чтобы кнопка не вылезала за экран */
+        }
+        h1 { font-size: 2rem; margin-bottom: 2rem; }
+        #freedom-btn {
+            background-color: #e63946; /* Красный */
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.2s;
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+            position: absolute; /* Чтобы можно было двигать */
+        }
+        #freedom-btn:hover {
+            background-color: #ff4d5a;
+            transform: scale(1.05);
+        }
+        #message {
+            margin-top: 200px;
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+        }
+        .counter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            color: #555;
+            font-family: monospace;
+        }
+        .footer {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 0.7rem;
+            color: #333;
+            text-align: left;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>СДЕЛАТЬ СВОБОДНЫЙ ВЫБОР</h1>
+    <button id="freedom-btn">Нажми меня</button>
+    <div id="message">Попробуйте нажать на кнопку. Что произойдет?</div>
+
+    <div class="counter">Свободных решений: <span id="count">0</span></div>
+    <div class="footer">
+        «Свобода — это не кнопка. Это понимание того, почему кнопка не работает». <br>
+        Проект по философии: Детерминизм и свобода воли.
+    </div>
+
+    <script>
+        const btn = document.getElementById('freedom-btn');
+        const msg = document.getElementById('message');
+        const countSpan = document.getElementById('count');
+        let clicks = 0;
+
+        // Массив случайных сообщений (цитаты философов или просто сарказм)
+        const messages = [
+            "Вы думали, это сработает?",
+            "Свобода воли не найдена. Ошибка 404.",
+            "Детерминизм: 1, Вы: 0.",
+            "Эта кнопка запрограммирована. Как и вы.",
+            "Попробуйте еще раз. Результат не изменится.",
+            "Вы уверены, что это был ваш выбор?"
+        ];
+
+        btn.addEventListener('click', function() {
+            clicks++;
+            countSpan.textContent = clicks;
+            
+            // Меняем сообщение
+            const randomIndex = Math.floor(Math.random() * messages.length);
+            msg.textContent = messages[randomIndex];
+
+            // Эффект "убегания" кнопки (опционально)
+            // Генерируем случайные координаты, чтобы кнопка прыгала
+            const x = Math.random() * (window.innerWidth - btn.offsetWidth);
+            const y = Math.random() * (window.innerHeight - btn.offsetHeight);
+            
+            // Если хотите, чтобы кнопка просто меняла текст, а не прыгала, закомментируйте строки ниже:
+            // btn.style.left = x + 'px';
+            // btn.style.top = y + 'px';
+
+            // Анимация "тряски"
+            btn.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg)';
+            setTimeout(() => {
+                btn.style.transform = 'scale(1)';
+            }, 100);
+        });
+    </script>
+
+</body>
+</html>
